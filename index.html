@@ -128,4 +128,176 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Desigualdades con Gráfico</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .contenedor {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    input, select, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #resultado {
+      margin-top: 15px;
+      padding: 10px;
+      background: #e6ffe6;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    #grafico {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>Resolver Desigualdades con Gráfico</h2>
+
+    <label for="tipo">Tipo:</label>
+    <select id="tipo" onchange="cambiarTipo()">
+      <option value="lineal">Lineal (ax + b)</option>
+      <option value="cuadratica">Cuadrática (ax² + bx + c)</option>
+    </select>
+
+    <label>Coeficiente a:</label>
+    <input type="number" id="a" placeholder="a">
+    
+    <label>Coeficiente b:</label>
+    <input type="number" id="b" placeholder="b">
+    
+    <label id="label-c">Coeficiente c:</label>
+    <input type="number" id="c" placeholder="c">
+    
+    <label>Signo de desigualdad:</label>
+    <select id="signo">
+      <option value="<">&lt;</option>
+      <option value="<=">&le;</option>
+      <option value=">">&gt;</option>
+      <option value=">=">&ge;</option>
+    </select>
+
+    <button onclick="resolver()">Resolver</button>
+
+    <div id="resultado"></div>
+    <div id="grafico"></div>
+  </div>
+
+  <script>
+    function cambiarTipo() {
+      const tipo = document.getElementById("tipo").value;
+      const labelC = document.getElementById("label-c");
+      const inputC = document.getElementById("c");
+      labelC.style.display = tipo === "cuadratica" ? "block" : "none";
+      inputC.style.display = tipo === "cuadratica" ? "block" : "none";
+    }
+
+    function invertirSigno(signo) {
+      return {
+        "<": ">",
+        "<=": ">=",
+        ">": "<",
+        ">=": "<="
+      }[signo];
+    }
+
+    function resolver() {
+      const tipo = document.getElementById("tipo").value;
+      const a = parseFloat(document.getElementById("a").value);
+      const b = parseFloat(document.getElementById("b").value);
+      const c = parseFloat(document.getElementById("c").value);
+      const signo = document.getElementById("signo").value;
+      const res = document.getElementById("resultado");
+
+      if (isNaN(a) || isNaN(b) || (tipo === "cuadratica" && isNaN(c))) {
+        res.innerHTML = "Por favor ingresa todos los coeficientes.";
+        return;
+      }
+
+      let texto = "", x = [], y = [];
+      const xmin = -10, xmax = 10, paso = 0.1;
+
+      for (let i = xmin; i <= xmax; i += paso) {
+        x.push(i);
+        if (tipo === "lineal") {
+          y.push(a * i + b);
+        } else {
+          y.push(a * i * i + b * i + c);
+        }
+      }
+
+      // Calcular y mostrar solución
+      if (tipo === "lineal") {
+        if (a === 0) {
+          texto = b + " " + signo + " 0 ⇒ " + (eval(`${b} ${signo} 0`) ? "Siempre verdadera" : "No tiene solución");
+        } else {
+          const raiz = -b / a;
+          const signoReal = a > 0 ? signo : invertirSigno(signo);
+          texto = `Solución: x ${signoReal} ${raiz.toFixed(2)}`;
+        }
+      } else {
+        const disc = b * b - 4 * a * c;
+        if (disc < 0) {
+          texto = a > 0
+            ? (signo.includes("<") ? "No tiene solución" : "Siempre verdadera")
+            : (signo.includes("<") ? "Siempre verdadera" : "No tiene solución");
+        } else {
+          const x1 = (-b + Math.sqrt(disc)) / (2 * a);
+          const x2 = (-b - Math.sqrt(disc)) / (2 * a);
+          const min = Math.min(x1, x2).toFixed(3);
+          const max = Math.max(x1, x2).toFixed(3);
+
+          if ((a > 0 && signo.includes("<")) || (a < 0 && signo.includes(">"))) {
+            texto = `Solución: ${min} < x < ${max}`;
+          } else {
+            texto = signo.includes("=")
+              ? `Solución: x ≤ ${min} o x ≥ ${max}`
+              : `Solución: x < ${min} o x > ${max}`;
+          }
+        }
+      }
+
+      res.innerHTML = texto;
+
+      // Graficar
+      Plotly.newPlot("grafico", [{
+        x: x,
+        y: y,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: 'blue' },
+        name: 'f(x)'
+      }, {
+        x: [xmin, xmax],
+        y: [0, 0],
+        mode: 'lines',
+        line: { dash: 'dot', color: 'gray' },
+        name: 'y = 0'
+      }], {
+        title: 'Gráfico de la función',
+        xaxis: { title: 'x' },
+        yaxis: { title: 'f(x)' }
+      });
+    }
+
+    cambiarTipo(); // Ocultar coeficiente c al inicio
+  </script>
+</body>
+</html>
 
