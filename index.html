@@ -2,96 +2,130 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Resolución de Desigualdades</title>
+  <title>Resolver Desigualdades</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    .box { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { margin: 10px 0; padding: 8px; width: 100%; }
-    .resultado { margin-top: 20px; padding: 10px; background: #e0ffe0; border-radius: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .contenedor {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #aaa;
+    }
+    input, select, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>Resolver Desigualdades</h2>
-    <label>Tipo:</label>
-    <select id="tipo">
-      <option value="lineal">Lineal (ax + b ≶ 0)</option>
-      <option value="cuadratica">Cuadrática (ax² + bx + c ≶ 0)</option>
+  <div class="contenedor">
+    <h2>Solución de Desigualdades Lineales y Cuadráticas</h2>
+
+    <label for="tipo">Tipo de desigualdad:</label>
+    <select id="tipo" onchange="cambiarTipo()">
+      <option value="lineal">Lineal (ax + b)</option>
+      <option value="cuadratica">Cuadrática (ax² + bx + c)</option>
     </select>
 
-    <label for="a">Coeficiente a:</label>
+    <label>Coeficiente a:</label>
     <input type="number" id="a" placeholder="a">
-    
-    <label for="b">Coeficiente b:</label>
+
+    <label>Coeficiente b:</label>
     <input type="number" id="b" placeholder="b">
-    
-    <label for="c">Coeficiente c (solo para cuadráticas):</label>
+
+    <label id="label-c">Coeficiente c:</label>
     <input type="number" id="c" placeholder="c">
-    
+
     <label for="signo">Signo de la desigualdad:</label>
     <select id="signo">
-      <option value="<"><</option>
-      <option value="<=">≤</option>
-      <option value=">">></option>
-      <option value=">=">≥</option>
+      <option value="<">&lt;</option>
+      <option value="<=">&le;</option>
+      <option value=">">&gt;</option>
+      <option value=">=">&ge;</option>
     </select>
 
     <button onclick="resolver()">Resolver</button>
-    <div class="resultado" id="resultado"></div>
+
+    <div id="resultado"></div>
   </div>
 
   <script>
+    function cambiarTipo() {
+      const tipo = document.getElementById("tipo").value;
+      document.getElementById("label-c").style.display = tipo === "cuadratica" ? "block" : "none";
+      document.getElementById("c").style.display = tipo === "cuadratica" ? "block" : "none";
+    }
+
+    function invertirSigno(signo) {
+      return {
+        "<": ">",
+        "<=": ">=",
+        ">": "<",
+        ">=": "<="
+      }[signo];
+    }
+
     function resolver() {
       const tipo = document.getElementById("tipo").value;
       const a = parseFloat(document.getElementById("a").value);
       const b = parseFloat(document.getElementById("b").value);
       const c = parseFloat(document.getElementById("c").value);
       const signo = document.getElementById("signo").value;
-      const res = document.getElementById("resultado");
+      const resultado = document.getElementById("resultado");
 
       if (isNaN(a) || isNaN(b) || (tipo === "cuadratica" && isNaN(c))) {
-        res.innerHTML = "Por favor, ingresa todos los coeficientes necesarios.";
+        resultado.innerHTML = "Por favor, ingresa todos los coeficientes.";
         return;
       }
 
       if (tipo === "lineal") {
-        // ax + b ≶ 0
-        let x;
         if (a === 0) {
-          res.innerHTML = b + " " + signo + " 0 → " + (eval(b + signo + "0") ? "Verdadero para todo x" : "No tiene solución");
+          resultado.innerHTML = b + " " + signo + " 0 ⇒ " + (eval(`${b} ${signo} 0`) ? "Siempre verdadera" : "Nunca verdadera");
         } else {
-          x = -b / a;
-          let dir = a > 0 ? signo : (signo === "<" ? ">" : signo === ">" ? "<" : signo === "<=" ? ">=" : "<=");
-          res.innerHTML = `Solución: x ${dir} ${x.toFixed(2)}`;
+          const x = -b / a;
+          const signoReal = a > 0 ? signo : invertirSigno(signo);
+          resultado.innerHTML = `Solución: x ${signoReal} ${x.toFixed(3)}`;
         }
-      } else {
-        // ax² + bx + c ≶ 0
-        const d = b*b - 4*a*c;
-        if (a === 0) {
-          res.innerHTML = "No es una ecuación cuadrática (a = 0).";
-          return;
-        }
-        if (d < 0) {
-          res.innerHTML = `Discriminante < 0 → La parábola no corta el eje x. La expresión es siempre ${a > 0 ? "> 0" : "< 0"}<br>
-          Resultado: ${eval("0 " + signo + " " + (a > 0 ? 1 : -1)) ? "Verdadero para todo x" : "No tiene solución real"}`;
+      } else if (tipo === "cuadratica") {
+        const disc = b * b - 4 * a * c;
+
+        if (disc < 0) {
+          resultado.innerHTML = a > 0
+            ? (signo.includes("<") ? "No tiene solución" : "Siempre verdadera")
+            : (signo.includes("<") ? "Siempre verdadera" : "No tiene solución");
         } else {
-          const x1 = (-b - Math.sqrt(d)) / (2*a);
-          const x2 = (-b + Math.sqrt(d)) / (2*a);
-          const [min, max] = [Math.min(x1, x2), Math.max(x1, x2)];
-          let solucion = "";
-          if (signo === "<") {
-            solucion = a > 0 ? `x ∈ (${min.toFixed(2)}, ${max.toFixed(2)})` : `x ∈ (-∞, ${min.toFixed(2)}) ∪ (${max.toFixed(2)}, ∞)`;
-          } else if (signo === "<=") {
-            solucion = a > 0 ? `x ∈ [${min.toFixed(2)}, ${max.toFixed(2)}]` : `x ∈ (-∞, ${min.toFixed(2)}] ∪ [${max.toFixed(2)}, ∞)`;
-          } else if (signo === ">") {
-            solucion = a > 0 ? `x ∈ (-∞, ${min.toFixed(2)}) ∪ (${max.toFixed(2)}, ∞)` : `x ∈ (${min.toFixed(2)}, ${max.toFixed(2)})`;
+          const x1 = (-b + Math.sqrt(disc)) / (2 * a);
+          const x2 = (-b - Math.sqrt(disc)) / (2 * a);
+          const min = Math.min(x1, x2).toFixed(3);
+          const max = Math.max(x1, x2).toFixed(3);
+
+          let texto = "";
+          if ((a > 0 && signo.includes("<")) || (a < 0 && signo.includes(">"))) {
+            texto = `Solución: x entre ${min} y ${max} ⇒ ${min} < x < ${max}`;
           } else {
-            solucion = a > 0 ? `x ∈ (-∞, ${min.toFixed(2)}] ∪ [${max.toFixed(2)}, ∞)` : `x ∈ [${min.toFixed(2)}, ${max.toFixed(2)}]`;
+            const eq = signo.includes("=") ? "incluyendo extremos" : "excluyendo extremos";
+            texto = `Solución: x ≤ ${min} o x ≥ ${max} (${eq})`;
           }
-          res.innerHTML = `Solución: ${solucion}`;
+
+          resultado.innerHTML = texto;
         }
       }
     }
+
+    cambiarTipo(); // Oculta el coeficiente c si es lineal
   </script>
 </body>
 </html>
+
